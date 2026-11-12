@@ -5,6 +5,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    allowedHosts: ['.trycloudflare.com'],
+  },
+  preview: {
+    allowedHosts: ['.trycloudflare.com'],
+  },
   plugins: [
     react(),
     tailwindcss(),
