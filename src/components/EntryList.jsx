@@ -19,7 +19,7 @@ function formatWhen(timestamp) {
   })
 }
 
-const EntryItem = memo(({ entry, onSetEditing, isEditing }) => {
+const EntryItem = memo(({ entry, onSetEditing, isEditing, onDelete }) => {
   // Preserve line breaks, collapse multiple spaces
   const displayText = entry.body.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n')
 
@@ -33,9 +33,18 @@ const EntryItem = memo(({ entry, onSetEditing, isEditing }) => {
         <span className="shrink-0 text-xs text-stone-500 dark:text-stone-400 whitespace-nowrap mt-1">
           {formatWhen(entry.updatedAt)}
         </span>
-        <span className="flex-1 text-stone-700 dark:text-stone-300 opacity-60 whitespace-pre-wrap break-words">
+        <span className="flex-1 text-stone-700 dark:text-stone-300 opacity-[45%] whitespace-pre-wrap break-words">
           {displayText}
         </span>
+        {entry && (
+          <button
+            type="button"
+            onClick={() => onDelete(entry.id)}
+            className="shrink-0 rounded-full px-3 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 pointer-events-none"
+          >
+            Delete
+          </button>
+        )}
       </div>
     </button>
   )
@@ -48,6 +57,7 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
     const textarea = ref.current
     textarea?.focus()
     textarea?.setSelectionRange(textarea.value.length, textarea.value.length)
+    handleInput()
   }, [])
 
   function handleSubmit() {
@@ -94,6 +104,7 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
         {entry && (
           <button
             type="button"
+            onMouseDown={(event) => event.preventDefault()}
             onClick={() => onDelete(entry.id)}
             className="shrink-0 rounded-full px-3 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
@@ -191,6 +202,7 @@ export default function EntryList({
                     entry={entry}
                     onSetEditing={onSetEditing}
                     isEditing={isEditing}
+                    onDelete={onDelete}
                   />
                 )}
               </li>
