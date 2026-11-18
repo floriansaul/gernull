@@ -1,44 +1,40 @@
 import { useState } from 'react'
 import { useLiveQuery, useObservable } from 'dexie-react-hooks'
-import EntryEditor from './components/EntryEditor'
 import EntryList from './components/EntryList'
 import InstallButton from './components/InstallButton'
 import LoginScreen from './components/LoginScreen'
-import { db, listEntries } from './db'
+import { db, listEntries, createEntry, updateEntry, deleteEntry } from './db'
 
 export default function App() {
-  const [view, setView] = useState('list')
-  const [selectedId, setSelectedId] = useState(null)
+  const [editingId, setEditingId] = useState(null)
 
   const user = useObservable(db.cloud.currentUser)
 
+  // Revert to original working approach
   const entries = useLiveQuery(() => listEntries(), [])
+
+  async function handleSubmit(body, id) {
+    if (id) {
+      await updateEntry(id, { body })
+    } else {
+      await createEntry({ body })
+    }
+    setEditingId(null)
+  }
+
+  async function handleDelete(id) {
+    await deleteEntry(id)
+    if (editingId === id) {
+      setEditingId(null)
+    }
+  }
 
   if (!user?.isLoggedIn) {
     return <LoginScreen />
   }
 
-  if (entries === undefined) {
+  if (!entries) {
     return <p className="text-sm text-stone-500">Loading…</p>
-  }
-
-  async function openNew() {
-    setSelectedId(null)
-    setView('editor')
-  }
-
-  function openEntry(id) {
-    setSelectedId(id)
-    setView('editor')
-  }
-
-  async function backToList() {
-    setSelectedId(null)
-    setView('list')
-  }
-
-  async function handleLogout() {
-    await db.cloud.logout()
   }
 
   return (
@@ -52,17 +48,19 @@ export default function App() {
         </div>
         <button
           type="button"
-          onClick={handleLogout}
+          onClick={() => db.cloud.logout()}
           className="text-sm font-medium text-stone-600 underline dark:text-stone-300"
         >
           Log out
         </button>
       </header>
-      {view === 'list' ? (
-        <EntryList entries={entries} onNew={openNew} onOpen={openEntry} />
-      ) : (
-        <EntryEditor entryId={selectedId} onBack={backToList} />
-      )}
+      <EntryList
+        entries={entries}
+        editingId={editingId}
+        onSetEditing={setEditingId}
+        onSubmit={handleSubmit}
+        onDelete={handleDelete}
+      />
     </main>
   )
 }

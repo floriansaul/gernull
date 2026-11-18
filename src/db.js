@@ -3,8 +3,8 @@ import dexieCloud from 'dexie-cloud-addon'
 
 export const db = new Dexie('journal', { addons: [dexieCloud] })
 
-db.version(2).stores({
-  entries: 'id, updatedAt',
+db.version(3).stores({
+  entries: 'id, createdAt, updatedAt',
 })
 
 db.cloud.configure({
@@ -13,27 +13,29 @@ db.cloud.configure({
 })
 
 export function listEntries() {
-  return db.entries.orderBy('updatedAt').reverse().toArray()
+  return db.entries.orderBy('createdAt').reverse().toArray()
+}
+
+export function listEntryIds() {
+  return db.entries.orderBy('createdAt').reverse().keys().toArray()
 }
 
 export function getEntry(id) {
   return db.entries.get(id)
 }
 
-export function createEntry({ title, body }) {
+export function createEntry({ body }) {
   const now = Date.now()
   return db.entries.add({
     id: crypto.randomUUID(),
-    title,
     body,
     createdAt: now,
     updatedAt: now,
   })
 }
 
-export function updateEntry(id, { title, body }) {
+export function updateEntry(id, { body }) {
   return db.entries.update(id, {
-    title,
     body,
     updatedAt: Date.now(),
   })
