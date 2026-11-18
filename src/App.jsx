@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import EntryEditor from './components/EntryEditor'
 import EntryList from './components/EntryList'
+import InstallButton from './components/InstallButton'
 import { listEntries } from './db'
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
 
   return (
     <main className="mx-auto min-h-dvh max-w-lg px-4 py-6">
+      <InstallButton />
       {view === 'list' ? (
         <EntryList entries={entries} onNew={openNew} onOpen={openEntry} />
       ) : (
