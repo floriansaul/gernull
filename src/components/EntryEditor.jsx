@@ -1,33 +1,43 @@
-import { useEffect, useState } from 'react'
-import { createEntry, deleteEntry, getEntry, updateEntry } from '../db'
+import { useEffect, useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import {
+  createEntry,
+  deleteEntry,
+  getEntry,
+  updateEntry,
+} from '../db'
 
 export default function EntryEditor({ entryId, onBack }) {
   const isNew = entryId == null
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [ready, setReady] = useState(isNew)
-  const [missing, setMissing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const seeded = useRef(false)
+  const prevId = useRef(entryId)
 
   useEffect(() => {
-    if (isNew) return undefined
+    prevId.current = entryId
+    seeded.current = false
+    setTitle('')
+    setBody('')
+  }, [entryId])
 
-    let cancelled = false
-    getEntry(entryId).then((entry) => {
-      if (cancelled) return
-      if (!entry) {
-        setMissing(true)
-      } else {
-        setTitle(entry.title)
-        setBody(entry.body)
-      }
-      setReady(true)
-    })
+  const entry = useLiveQuery(
+    () => (isNew ? undefined : getEntry(entryId)),
+    [entryId],
+  )
 
-    return () => {
-      cancelled = true
+  useEffect(() => {
+    if (seeded.current || entry === undefined) return
+    seeded.current = true
+    if (entry) {
+      setTitle(entry.title)
+      setBody(entry.body)
     }
-  }, [entryId, isNew])
+  }, [entry])
+
+  const loading = !isNew && entry === undefined && !seeded.current
+  const missing = !isNew && seeded.current && entry == null
 
   const canSave = title.trim().length > 0 || body.trim().length > 0
 
@@ -51,7 +61,7 @@ export default function EntryEditor({ entryId, onBack }) {
     await onBack()
   }
 
-  if (!ready) {
+  if (loading) {
     return <p className="text-sm text-stone-500">Loading…</p>
   }
 

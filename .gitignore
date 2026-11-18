@@ -9,6 +9,8 @@ build/
 # Environment variables / secrets
 .env
 .env.*
+dexie-cloud.json
+dexie-cloud.key
 git 
 # Logs
 *.log
@@ -17,3 +19,4 @@ npm-debug.log*
 # OS / IDE
 .DS_Store
 .vscode/
+.kilo/
