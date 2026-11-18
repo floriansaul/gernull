@@ -9,7 +9,7 @@ db.version(3).stores({
 
 db.cloud.configure({
   databaseUrl: import.meta.env.VITE_DEXIE_CLOUD_URL,
-  requireAuth: true,
+  requireAuth: false,
 })
 
 export function listEntries() {
@@ -43,4 +43,13 @@ export function updateEntry(id, { body }) {
 
 export function deleteEntry(id) {
   return db.entries.delete(id)
+}
+
+export async function hasLocalEntries() {
+  const count = await db.entries.count()
+  return count > 0
+}
+
+export function clearLocalEntries() {
+  return db.entries.clear()
 }
