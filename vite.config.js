@@ -3,8 +3,16 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// On GitHub Pages (project sites), the app is served from /<repo>/, so the base
+// must match. GitHub Actions sets GITHUB_REPOSITORY to "owner/repo". For local
+// dev (no such env var) this falls back to "/". Override with GITHUB_PAGES_BASE
+// when serving from a custom domain or a user/org site (username.github.io).
+const repo = process.env.GITHUB_REPOSITORY?.split('/')[1]
+const base = process.env.GITHUB_PAGES_BASE ?? (repo ? `/${repo}/` : '/')
+
 // https://vite.dev/config/
 export default defineConfig({
+  base,
   server: {
     allowedHosts: ['.trycloudflare.com'],
   },
@@ -28,7 +36,7 @@ export default defineConfig({
         theme_color: '#16171d',
         background_color: '#f6f4ef',
         display: 'standalone',
-        start_url: '/',
+        start_url: base,
         icons: [
           {
             src: 'pwa-192.png',
