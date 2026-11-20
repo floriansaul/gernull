@@ -24,20 +24,23 @@ export function getEntry(id) {
   return db.entries.get(id)
 }
 
-export function createEntry({ body }) {
+export function createEntry({ body, location }) {
   const now = Date.now()
-  return db.entries.add({
+  const entry = {
     id: crypto.randomUUID(),
     body,
     createdAt: now,
     updatedAt: now,
-  })
+  }
+  if (location) entry.location = location
+  return db.entries.add(entry)
 }
 
-export function updateEntry(id, { body }) {
+export function updateEntry(id, { body, location }) {
   return db.entries.update(id, {
     body,
     updatedAt: Date.now(),
+    location,
   })
 }
 

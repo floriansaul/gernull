@@ -14,11 +14,11 @@ export default function App() {
 
   const entries = useLiveQuery(() => listEntries(), [])
 
-  async function handleSubmit(body, id) {
+  async function handleSubmit(body, id, location) {
     if (id) {
-      await updateEntry(id, { body })
+      await updateEntry(id, { body, location })
     } else {
-      await createEntry({ body })
+      await createEntry({ body, location })
     }
     setEditingId(null)
   }
@@ -74,7 +74,7 @@ export default function App() {
   }
 
   return (
-    <main className="mx-auto min-h-dvh max-w-lg px-4 py-6">
+    <main className="mx-auto min-h-dvh max-w-3xl px-4 py-6">
       <InstallButton />
       <header className="flex items-center justify-between gap-4 mb-6">
         {user?.isLoggedIn ? (
@@ -110,6 +110,12 @@ export default function App() {
         onSubmit={handleSubmit}
         onDelete={handleDelete}
       />
+      <footer className="mt-6 text-center text-xs text-stone-400 dark:text-stone-500">
+        Location data ©{' '}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">
+          OpenStreetMap contributors
+        </a>
+      </footer>
       <MergeConfirmModal
         isOpen={showMergeModal}
         onClose={handleModalClose}
