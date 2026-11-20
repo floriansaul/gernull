@@ -24,10 +24,17 @@ const EntryItem = memo(({ entry, onSetEditing, isEditing, onDelete }) => {
   const displayText = entry.body.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n')
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSetEditing(entry.id)}
-      className="w-full text-left p-4 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSetEditing(entry.id)
+        }
+      }}
+      className="w-full text-left p-4 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer"
     >
       <div className="flex items-start gap-3">
         <span className="shrink-0 text-xs text-stone-500 dark:text-stone-400 whitespace-nowrap mt-1">
@@ -39,14 +46,17 @@ const EntryItem = memo(({ entry, onSetEditing, isEditing, onDelete }) => {
         {entry && (
           <button
             type="button"
-            onClick={() => onDelete(entry.id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(entry.id)
+            }}
             className="shrink-0 rounded-full px-3 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 pointer-events-none"
           >
             Delete
           </button>
         )}
       </div>
-    </button>
+    </div>
   )
 })
 
