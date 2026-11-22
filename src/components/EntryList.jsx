@@ -20,7 +20,7 @@ function formatWhen(timestamp) {
   })
 }
 
-const EntryItem = memo(({ entry, onSetEditing, isEditing, onDelete }) => {
+const EntryItem = memo(({ entry, onSetEditing, onDelete }) => {
   const displayText = entry.body.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n')
 
   return (
@@ -98,10 +98,11 @@ function LocationInput({ location, setLocation, coordsRef, geoAttemptedRef, user
   )
 }
 
-function EntryEditor({ entry, onSubmit, onDelete }) {
+function EntryEditor({ entry, defaultLocationName, onSubmit, onDelete, active }) {
   const ref = useRef(null)
-  const [location, setLocation] = useState(entry.location?.name ?? '')
-  const coordsRef = useRef(entry.location?.lat != null ? { lat: entry.location.lat, lon: entry.location.lon } : undefined)
+  const isEditing = !!entry
+  const [location, setLocation] = useState(entry?.location?.name ?? defaultLocationName ?? '')
+  const coordsRef = useRef(entry?.location?.lat != null ? { lat: entry.location.lat, lon: entry.location.lon } : undefined)
   const geoAttemptedRef = useRef(false)
   const userEditedRef = useRef(false)
   const cancelledRef = useRef(false)
@@ -109,7 +110,9 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
   useEffect(() => {
     const textarea = ref.current
     textarea?.focus()
-    textarea?.setSelectionRange(textarea.value.length, textarea.value.length)
+    if (isEditing) {
+      textarea?.setSelectionRange(textarea.value.length, textarea.value.length)
+    }
     handleInput()
     return () => { cancelledRef.current = true }
   }, [])
@@ -121,8 +124,14 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
     const loc = name
       ? { name, ...(coordsRef.current ? { lat: coordsRef.current.lat, lon: coordsRef.current.lon } : {}) }
       : undefined
-    onSubmit(body, loc)
+    onSubmit(body, entry?.id ?? null, loc)
     ref.current.value = ''
+    if (!isEditing) {
+      setLocation(defaultLocationName ?? '')
+      coordsRef.current = undefined
+      geoAttemptedRef.current = false
+      userEditedRef.current = false
+    }
   }
 
   function handleKeyDown(event) {
@@ -142,7 +151,7 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
     <div className="w-full p-4" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) handleSubmit() }}>
       <div className="flex items-start gap-3">
         <div className="shrink-0 flex flex-col items-center text-center gap-4 text-xs w-24 text-stone-500 dark:text-stone-400 whitespace-normal break-words mt-1">
-          <span>{entry ? formatWhen(entry.createdAt) : ''}</span>
+          <span>{isEditing ? formatWhen(entry.createdAt) : 'Today'}</span>
           <LocationInput
             location={location}
             setLocation={setLocation}
@@ -161,84 +170,35 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
           placeholder="Write a new entry…"
           style={{ minHeight: '1.5rem' }}
         />
-        {entry && (
+        {isEditing ? (
+          <div className="shrink-0 flex flex-col gap-1">
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={handleSubmit}
+              className="rounded-full px-3 py-1 text-xs font-bold text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onDelete(entry.id)}
+              className="rounded-full px-3 py-1 text-xs font-bold text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        ) : active && (
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}
-            onClick={() => onDelete(entry.id)}
-            className="shrink-0 rounded-full px-3 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            onClick={handleSubmit}
+            className="shrink-0 rounded-full px-3 py-1 text-xs font-bold text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
           >
-            Delete
+            Submit
           </button>
         )}
-      </div>
-    </div>
-  )
-}
-
-function NewEntryEditor({ onSubmit, defaultLocationName }) {
-  const ref = useRef(null)
-  const [location, setLocation] = useState(defaultLocationName ?? '')
-  const coordsRef = useRef(undefined)
-  const geoAttemptedRef = useRef(false)
-  const userEditedRef = useRef(false)
-  const cancelledRef = useRef(false)
-
-  useEffect(() => {
-    ref.current?.focus()
-    return () => { cancelledRef.current = true }
-  }, [])
-
-  function handleSubmit() {
-    const body = ref.current.value.trim()
-    if (!body) return
-    const name = location.trim()
-    const loc = name
-      ? { name, ...(coordsRef.current ? { lat: coordsRef.current.lat, lon: coordsRef.current.lon } : {}) }
-      : undefined
-    onSubmit(body, loc)
-    ref.current.value = ''
-    setLocation(defaultLocationName ?? '')
-    coordsRef.current = undefined
-    geoAttemptedRef.current = false
-    userEditedRef.current = false
-  }
-
-  function handleKeyDown(event) {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-      event.preventDefault()
-      handleSubmit()
-    }
-  }
-
-  function handleInput() {
-    const textarea = ref.current
-    textarea.style.height = 'auto'
-    textarea.style.height = textarea.scrollHeight + 'px'
-  }
-
-  return (
-    <div className="w-full p-4" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) handleSubmit() }}>
-      <div className="flex items-start gap-3">
-        <div className="shrink-0 flex flex-col items-center text-center gap-4 text-xs w-24 text-stone-500 dark:text-stone-400 whitespace-normal break-words mt-1">
-          <span>Today</span>
-          <LocationInput
-            location={location}
-            setLocation={setLocation}
-            coordsRef={coordsRef}
-            geoAttemptedRef={geoAttemptedRef}
-            userEditedRef={userEditedRef}
-            onSubmit={handleSubmit}
-          />
-        </div>
-        <textarea
-          ref={ref}
-          className="flex-1 bg-transparent border-none outline-none resize-none text-stone-700 dark:text-stone-300 leading-relaxed placeholder-stone-400 dark:placeholder-stone-500"
-          onKeyDown={handleKeyDown}
-          onInput={handleInput}
-          placeholder="Write a new entry…"
-          style={{ minHeight: '1.5rem' }}
-        />
       </div>
     </div>
   )
@@ -255,9 +215,10 @@ export default function EntryList({
 
   return (
     <div className="flex flex-col gap-3">
-      <NewEntryEditor
+      <EntryEditor
         defaultLocationName={previousLocationName}
-        onSubmit={(body, location) => onSubmit(body, null, location)}
+        onSubmit={onSubmit}
+        active={editingId === null}
       />
 
       {entries.length === 0 ? (
@@ -274,14 +235,14 @@ export default function EntryList({
                 {isEditing ? (
                   <EntryEditor
                     entry={entry}
-                    onSubmit={(body, location) => onSubmit(body, entry.id, location)}
+                    onSubmit={onSubmit}
                     onDelete={onDelete}
+                    active={isEditing}
                   />
                 ) : (
                   <EntryItem
                     entry={entry}
                     onSetEditing={onSetEditing}
-                    isEditing={isEditing}
                     onDelete={onDelete}
                   />
                 )}
