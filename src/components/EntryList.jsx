@@ -38,7 +38,7 @@ const EntryItem = memo(({ entry, onSetEditing, isEditing, onDelete }) => {
     >
       <div className="flex items-start gap-3">
         <div className="shrink-0 flex flex-col items-center text-center gap-4 text-xs w-24 text-stone-500 dark:text-stone-400 whitespace-normal break-words mt-1">
-          <span>{formatWhen(entry.updatedAt)}</span>
+          <span>{formatWhen(entry.createdAt)}</span>
           {entry.location?.name && <span>{entry.location.name}</span>}
         </div>
         <span className="flex-1 text-stone-700 dark:text-stone-300 opacity-[45%] whitespace-pre-wrap break-words">
@@ -142,7 +142,7 @@ function EntryEditor({ entry, onSubmit, onDelete }) {
     <div className="w-full p-4" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) handleSubmit() }}>
       <div className="flex items-start gap-3">
         <div className="shrink-0 flex flex-col items-center text-center gap-4 text-xs w-24 text-stone-500 dark:text-stone-400 whitespace-normal break-words mt-1">
-          <span>{entry ? formatWhen(entry.updatedAt) : ''}</span>
+          <span>{entry ? formatWhen(entry.createdAt) : ''}</span>
           <LocationInput
             location={location}
             setLocation={setLocation}
