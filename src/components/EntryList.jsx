@@ -149,7 +149,7 @@ function EntryEditor({ entry, defaultLocationName, onSubmit, onDelete, active })
 
   return (
     <div className="w-full p-4" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) handleSubmit() }}>
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 flex-wrap">
         <div className="shrink-0 flex flex-col items-center text-center gap-4 text-xs w-24 text-stone-500 dark:text-stone-400 whitespace-normal break-words mt-1">
           <span>{isEditing ? formatWhen(entry.createdAt) : 'Today'}</span>
           <LocationInput
@@ -190,14 +190,16 @@ function EntryEditor({ entry, defaultLocationName, onSubmit, onDelete, active })
             </button>
           </div>
         ) : active && (
-          <button
-            type="button"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={handleSubmit}
-            className="shrink-0 rounded-full px-3 py-1 text-xs font-bold text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
-          >
-            Submit
-          </button>
+          <div className="shrink-0 flex flex-col gap-1">
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={handleSubmit}
+              className="rounded-full px-3 py-1 text-xs font-bold text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+            >
+              Submit
+            </button>
+          </div>
         )}
       </div>
     </div>
